@@ -1,0 +1,82 @@
+-- MySQL 8+ (Aiven/DataGrip)
+-- If you re-run often:
+DROP TABLE IF EXISTS EVENTO_ACTUADOR;
+DROP TABLE IF EXISTS MEDICION;
+DROP TABLE IF EXISTS RECOLECCION;
+DROP TABLE IF EXISTS ACTUADOR;
+DROP TABLE IF EXISTS SENSOR;
+DROP TABLE IF EXISTS BOTE_BASURA;
+
+CREATE TABLE BOTE_BASURA (
+  id_bote INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  ubicacion VARCHAR(255) NOT NULL,
+  altura FLOAT NULL,
+  peso_maximo_kg FLOAT NULL,
+  latitud DOUBLE NULL,
+  longitud DOUBLE NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE SENSOR (
+  id_sensor INT AUTO_INCREMENT PRIMARY KEY,
+  id_bote INT NOT NULL,
+  tipo_sensor VARCHAR(50) NOT NULL,
+  CONSTRAINT fk_sensor_bote
+    FOREIGN KEY (id_bote) REFERENCES BOTE_BASURA(id_bote)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE ACTUADOR (
+  id_actuador INT AUTO_INCREMENT PRIMARY KEY,
+  id_bote INT NOT NULL,
+  tipo_actuador VARCHAR(50) NOT NULL,
+  CONSTRAINT fk_actuador_bote
+    FOREIGN KEY (id_bote) REFERENCES BOTE_BASURA(id_bote)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE MEDICION (
+  id_medicion BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id_sensor INT NOT NULL,
+
+  distancia_cm FLOAT NULL,
+  porcentaje_llenado FLOAT NULL,
+  peso_kg FLOAT NULL,
+  temperatura_celsius FLOAT NULL,
+  humedad_porcentaje FLOAT NULL,
+  aceleracion_x FLOAT NULL,
+  aceleracion_y FLOAT NULL,
+  aceleracion_z FLOAT NULL,
+  detecta_caida BOOLEAN NULL,
+
+  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_medicion_sensor_ts (id_sensor, ts),
+  CONSTRAINT fk_medicion_sensor
+    FOREIGN KEY (id_sensor) REFERENCES SENSOR(id_sensor)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE EVENTO_ACTUADOR (
+  id_evento BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id_actuador INT NOT NULL,
+  descp VARCHAR(255) NOT NULL,
+  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_evento_actuador_ts (id_actuador, ts),
+  CONSTRAINT fk_evento_actuador
+    FOREIGN KEY (id_actuador) REFERENCES ACTUADOR(id_actuador)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE RECOLECCION (
+  id_recoleccion BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id_bote INT NOT NULL,
+  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  peso_recolectado_kg FLOAT NULL,
+
+  INDEX idx_recoleccion_bote_ts (id_bote, ts),
+  CONSTRAINT fk_recoleccion_bote
+    FOREIGN KEY (id_bote) REFERENCES BOTE_BASURA(id_bote)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
